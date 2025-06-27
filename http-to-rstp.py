@@ -69,12 +69,14 @@ def start_server():
     service.start()
     services.append(service)
 
-    
-    for s in config_data["streams"]:
+    time.sleep(config_data["settings"]["stream_delay"])
 
-        service = threading.Thread(target=stream, args=( s["http_url"], s["rtsp_name"], s["category"], s["name"]), name="http_empfangs_stream")
-        service.start()
-        services.append(service)
+    if config_data["settings"]["streams"]:
+        for s in config_data["streams"]:
+
+            service = threading.Thread(target=stream, args=( s["http_url"], s["rtsp_name"], s["category"], s["name"]), name="http_empfangs_stream")
+            service.start()
+            services.append(service)
     
 def stop_server():
     print("Server wird gestoppt...")

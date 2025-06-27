@@ -1,4 +1,8 @@
 {
+  "settings": {
+    "streams": true,
+    "stream_delay": 5
+  },
   "options": {
     "Edimax Default": [
       "ffmpeg_local.exe",
