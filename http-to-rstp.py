@@ -28,10 +28,31 @@ programm = True
 services = []
 tasks = {}
 
+def halbwertszeit():
+    zeit = int(config_data["settings"]["halbwertszeit"]/2)*60*60*24
+    counter = 0
+    while programm:
+        time.sleep(60)  # Check every minute
+        counter += 60  # Increment counter by 60 seconds
+        if counter >= zeit:
+            print("Halbwertszeit erreicht, Server wird neu gestartet...")
+            stop_server()
+            time.sleep(10)
+            start_server()
+            time.sleep(10)
+            counter = 0
+
+
+
+h1 = threading.Thread(target=halbwertszeit, name="halbwertszeit")
+if config_data["settings"]["halbwertszeit"] > 0: h1.start()
+
+
+
 
 def mediamtx():
     tasks["mediamtx"] = "mediamtx.exe"
-    proc = subprocess.Popen(["mediamtx.exe"])
+    proc = subprocess.Popen([config_data["settings"]["mediamtx_path"]])
     threading.current_thread().proc = proc
     proc.wait()
     del tasks["mediamtx"]
@@ -49,7 +70,9 @@ def stream(http, rtsp, kategorie, name):
             case "http_url":
                 add = str(http)
             case "rtsp_url":
-                add = "rtsp://localhost:8554/"+str(rtsp)
+                add = f'rtsp://localhost:{str(config_data["settings"]["server_port"])}/{str(rtsp)}'
+            case "ffmpeg":
+                add = str(config_data["settings"]["ffmpeg_path"])
             case _:
                 add = str(e)
         command.append(add)
@@ -189,7 +212,7 @@ class StreamManagerApp:
         self.topbar = ctk.CTkFrame(self.main_frame, height=60)
         self.topbar.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
         self.topbar.grid_propagate(False)
-        self.topbar.grid_columnconfigure(1, weight=1)
+        self.topbar.grid_columnconfigure(3, weight=1)
         
         self.add_stream_btn = ctk.CTkButton(
             self.topbar,
@@ -199,13 +222,36 @@ class StreamManagerApp:
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.add_stream_btn.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+
+        self.start_stream_btn = ctk.CTkButton(
+            self.topbar,
+            text="Start Server",
+            command=start_server,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="#32CD32",  # Lime Green
+            hover_color="#28a428"  # Darker Lime Green for hover
+        )
+        self.start_stream_btn.grid(row=0, column=1, padx=20, pady=10, sticky="w")
         
+        self.stop_stream_btn = ctk.CTkButton(
+            self.topbar,
+            text="Stop Server",
+            command=stop_server,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="#FF0000",  # Lime Green
+            hover_color="#C20000"  # Darker Lime Green for hover
+        )
+        self.stop_stream_btn.grid(row=0, column=2, padx=20, pady=10, sticky="w")
+
+
         self.title_label = ctk.CTkLabel(
             self.topbar,
             text="Stream Manager",
             font=ctk.CTkFont(size=18, weight="bold")
         )
-        self.title_label.grid(row=0, column=2, padx=20, pady=10, sticky="e")
+        self.title_label.grid(row=0, column=4, padx=20, pady=10, sticky="e")
         
         # Content Frame
         self.content_frame = ctk.CTkFrame(self.main_frame)
@@ -423,7 +469,10 @@ class StreamManagerApp:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    start_server()
+    
+    if config_data["settings"]["auto_server_start"]:
+        start_server() 
+
     app = StreamManagerApp()
     app.run()
     programm = False

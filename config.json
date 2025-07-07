@@ -1,11 +1,17 @@
 {
   "settings": {
     "streams": true,
-    "stream_delay": 5
+    "stream_delay": 5,
+    "auto_server_start": false,
+    "server_port": 8554,
+    "ffmpeg_path": "ffmpeg_local.exe",
+    "mediamtx_path": "mediamtx.exe",
+    "halbwertszeit": 3.44
+
   },
   "options": {
     "Edimax Default": [
-      "ffmpeg_local.exe",
+      "ffmpeg",
       "-re",
       "-f",
       "mjpeg",
